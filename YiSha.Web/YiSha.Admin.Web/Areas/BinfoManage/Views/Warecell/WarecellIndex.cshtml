@@ -1,0 +1,178 @@
+﻿@{
+    Layout = "~/Views/Shared/_Index.cshtml";
+ }
+<div class="container-div">
+    <div class="row">
+        <div id="searchDiv" class="col-sm-12 search-collapse">
+            <div class="select-list">
+                <ul>
+                    <li>
+                        货位编码：<input id="warecellCode" col="WarecellCode" type="text" />
+                    </li>
+                    <li>
+                        托盘编码：<input id="palletCode" col="PalletCode" type="text" />
+                    </li>
+                    <li>
+                        分区名称：<span id="zoneId" col="ZoneId"></span>
+                    </li>
+                    <li>
+                        货位类型名称：<span id="warecellSpecId" col="WarecellSpecId"></span>
+                    </li>
+                    <li>
+                        货位状态名称：<span id="warecellStatusKey" col="WarecellStatusKey"></span>
+                    </li>
+                    <li>
+                        行：<input id="warecellRow" col="WarecellRow" type="text" />
+                    </li>
+                    <li>
+                        列：<input id="warecellColumn" col="WarecellColumn" type="text" />
+                    </li>
+                    <li>
+                        层：<input id="warecellLayer" col="WarecellLayer" type="text" />
+                    </li>
+                    <li>
+                        深：<input id="warecellDepth" col="WarecellDepth" type="text" />
+                    </li>
+                    <li>
+                        巷道：<input id="warecellWay" col="WarecellWay" type="text" />
+                    </li>
+                    <li>
+                        备注：<input id="warecellRemark" col="WarecellRemark" type="text" />
+                    </li>
+                    <li>
+                        状态：<span id="warecellStatus" col="WarecellStatus"></span>
+                    </li>
+                    <li>
+                        <a id="btnSearch" class="btn btn-primary btn-sm" onclick="searchGrid()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="btn-group-sm hidden-xs" id="toolbar">
+            <a id="btnAdd" class="btn btn-success" onclick="showSaveForm(true)"><i class="fa fa-plus"></i> 新增</a>
+            <a id="btnEdit" class="btn btn-primary disabled" onclick="showSaveForm(false)"><i class="fa fa-edit"></i> 修改</a>
+            <a id="btnDelete" class="btn btn-danger disabled" onclick="deleteForm()"><i class="fa fa-remove"></i> 删除</a>
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table id="gridTable" data-mobile-responsive="true"></table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $("#warecellSpecId").ysComboBox({
+            url: '@Url.Content("~/BinfoManage/WarecellSpec/GetListJson")',
+            key: "Id",
+            value: "WarecellSpecName"
+        }
+        );
+        $("#warecellStatusKey").ysComboBox({
+            data: top.getDataDict("WarecellStatus"),
+            key: "DictKey",
+            value: "DictValue"
+        });
+        $("#zoneId").ysComboBox({
+            url: '@Url.Content("~/BinfoManage/Zone/GetListJson")',
+            key: "Id",
+            value: "ZoneName"
+        });
+        $("#warecellStatus").ysComboBox({ data: ys.getJson(@Html.Raw(typeof(StatusEnum).EnumToDictionaryString())) });
+
+        initGrid();
+    });
+
+    function initGrid() {
+        var queryUrl = '@Url.Content("~/BinfoManage/Warecell/GetPageListJson")';
+        $('#gridTable').ysTable({
+            url: queryUrl,
+            sortName: 'WarecellCode',
+            sortOrder: 'Asc',
+            columns: [
+                { checkbox: true, visible: true },
+                { field: 'Id', title: 'Id', visible: false },
+                { field: 'WarecellCode', title: '货位编码', sortable: true },
+                { field: 'PalletId', title: 'PalletId', visible: false },
+                { field: 'PalletCode', title: '托盘编码' },
+                { field: 'ZoneName', title: '分区名称' },
+                { field: 'WarecellSpecName', title: '货位类型名称' },
+                {
+                    field: 'WarecellStatusKey', title: '货位状态名称', formatter: function (value, row, index) {
+                        return top.getDataDictValue('WarecellStatus', value);
+                    }
+                },
+                { field: 'WarecellRow', title: '行', sortable: true },
+                { field: 'WarecellColumn', title: '列', sortable: true },
+                { field: 'WarecellLayer', title: '层', sortable: true },
+                { field: 'WarecellDepth', title: '深', sortable: true },
+                { field: 'WarecellWay', title: '巷道', sortable: true },
+                { field: 'WarecellRemark', title: '备注' },
+                {
+                    field: 'WarecellStatus', title: '状态', width: "15%",
+                    formatter: function (value, row, index) {
+                        if (value == "@StatusEnum.Yes.ParseToInt()") {
+                            return '<span class="badge badge-primary">' + "@StatusEnum.Yes.GetDescription()" + '</span>';
+                        } else {
+                            return '<span class="badge badge-warning">' + "@StatusEnum.No.GetDescription()" + '</span>';
+                        }
+                    }
+                },
+            ],
+            queryParams: function (params) {
+                var pagination = $('#gridTable').ysTable('getPagination', params);
+                var queryString = $('#searchDiv').getWebControls(pagination);
+                return queryString;
+            }
+        });
+    }
+
+    function searchGrid() {
+        $('#gridTable').ysTable('search');
+        resetToolbarStatus();
+    }
+
+    function showSaveForm(bAdd) {
+        var id = 0;
+        if (!bAdd) {
+            var selectedRow = $('#gridTable').bootstrapTable('getSelections');
+            if (!ys.checkRowEdit(selectedRow)) {
+                return;
+            }
+            else {
+                id = selectedRow[0].Id;
+            }
+        }
+        ys.openDialog({
+            title: id > 0 ? '编辑' : '添加',
+            content: '@Url.Content("~/BinfoManage/Warecell/WarecellForm")' + '?id=' + id,
+            width: '768px',
+            height: '550px',
+            callback: function (index, layero) {
+                var iframeWin = window[layero.find('iframe')[0]['name']];
+                iframeWin.saveForm(index);
+            }
+        });
+    }
+
+    function deleteForm() {
+        var selectedRow = $('#gridTable').bootstrapTable('getSelections');
+        if (ys.checkRowDelete(selectedRow)) {
+            ys.confirm('确认要删除选中的' + selectedRow.length + '条数据吗？', function () {
+                var ids = ys.getIds(selectedRow);
+                ys.ajax({
+                    url: '@Url.Content("~/BinfoManage/Warecell/DeleteFormJson")' + '?ids=' + ids,
+                    type: 'post',
+                    success: function (obj) {
+                        if (obj.Tag == 1) {
+                            ys.msgSuccess(obj.Message);
+                            searchGrid();
+                        }
+                        else {
+                            ys.msgError(obj.Message);
+                        }
+                    }
+                });
+            });
+        }
+    }
+</script>

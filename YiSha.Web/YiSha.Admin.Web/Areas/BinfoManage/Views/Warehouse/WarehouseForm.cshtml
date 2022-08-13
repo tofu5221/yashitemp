@@ -1,0 +1,88 @@
+﻿@{
+    Layout = "~/Views/Shared/_FormWhite.cshtml";
+}
+
+<div class="wrapper animated fadeInRight">
+    <form id="form" class="form-horizontal m">
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">仓库编码<font class="red"> *</font></label>
+            <div class="col-sm-8">
+                <input id="warehouseCode" col="WarehouseCode" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">仓库名称<font class="red"> *</font></label>
+            <div class="col-sm-8">
+                <input id="warehouseName" col="WarehouseName" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">仓库地址</label>
+            <div class="col-sm-8">
+                <input id="warehouseAddress" col="WarehouseAddress" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">状态</label>
+            <div class="col-sm-8" id="warehouseStatus" col="WarehouseStatus">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    var id = ys.request("id");
+    $(function () {
+        $("#warehouseStatus").ysRadioBox({ data: ys.getJson(@Html.Raw(typeof(StatusEnum).EnumToDictionaryString())) });
+
+        getForm();
+
+        $('#form').validate({
+            rules: {
+                warehouseCode: { required: true },
+                warehouseName: { required: true }
+            }
+        });
+    });
+
+    function getForm() {
+        if (id > 0) {
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Warehouse/GetFormJson")' + '?id=' + id,
+                type: 'get',
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        $('#form').setWebControls(obj.Data);
+                    }
+                }
+            });
+        }
+        else {
+            var defaultData = {};
+            defaultData.WarehouseStatus = "@StatusEnum.Yes.ParseToInt()";
+            $('#form').setWebControls(defaultData);
+        }
+    }
+
+    function saveForm(index) {
+        if ($('#form').validate().form()) {
+            var postData = $('#form').getWebControls({ Id: id });
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Warehouse/SaveFormJson")',
+                type: 'post',
+                data: postData,
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        ys.msgSuccess(obj.Message);
+                        parent.searchGrid();
+                        parent.layer.close(index);
+                    }
+                    else {
+                        ys.msgError(obj.Message);
+                    }
+                }
+            });
+        }
+    }
+</script>
+

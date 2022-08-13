@@ -1,0 +1,106 @@
+﻿@{
+    Layout = "~/Views/Shared/_FormWhite.cshtml";
+}
+
+<div class="wrapper animated fadeInRight">
+    <form id="form" class="form-horizontal m">
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">货位类型代码<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="warecellSpecCode" col="WarecellSpecCode" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">货位类型名称<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="warecellSpecName" col="WarecellSpecName" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">长</label>
+            <div class="col-sm-4">
+                <input id="warecellSpecLenght" col="WarecellSpecLenght" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">宽</label>
+            <div class="col-sm-4">
+                <input id="warecellSpecWidth" col="WarecellSpecWidth" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">高</label>
+            <div class="col-sm-4">
+                <input id="warecellSpecHeight" col="WarecellSpecHeight" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">容量</label>
+            <div class="col-sm-4">
+                <input id="warecellSpecVolume" col="WarecellSpecVolume" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">备注</label>
+            <div class="col-sm-4">
+                <input id="warecellSpecRemark" col="WarecellSpecRemark" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">状态</label>
+            <div class="col-sm-4" id="warecellSpecStatus" col="WarecellSpecStatus">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    var id = ys.request("id");
+    $(function () {
+        $("#warecellSpecStatus").ysRadioBox({ data: ys.getJson(@Html.Raw(typeof(StatusEnum).EnumToDictionaryString())) });
+
+        getForm();
+
+        $('#form').validate({
+            rules: {
+                warecellSpecCode: { required: true },
+                warecellSpecName: { required: true }
+            }
+        });
+    });
+
+    function getForm() {
+        if (id > 0) {
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/WarecellSpec/GetFormJson")' + '?id=' + id,
+                type: 'get',
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        $('#form').setWebControls(obj.Data);
+                    }
+                }
+            });
+        }
+        else {
+            var defaultData = {};
+            defaultData.WarecellSpecStatus = "@StatusEnum.Yes.ParseToInt()";
+            $('#form').setWebControls(defaultData);
+        }
+    }
+
+    function saveForm(index) {
+        if ($('#form').validate().form()) {
+            var postData = $('#form').getWebControls({ Id: id });
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/WarecellSpec/SaveFormJson")',
+                type: 'post',
+                data: postData,
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        ys.msgSuccess(obj.Message);
+                        parent.searchGrid();
+                        parent.layer.close(index);
+                    }
+                    else {
+                        ys.msgError(obj.Message);
+                    }
+                }
+            });
+        }
+    }
+</script>
+

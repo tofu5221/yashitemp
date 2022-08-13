@@ -1,0 +1,116 @@
+﻿@{
+    Layout = "~/Views/Shared/_FormWhite.cshtml";
+}
+
+<div class="wrapper animated fadeInRight">
+    <form id="form" class="form-horizontal m">
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">CustomerCode<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerCode" col="CustomerCode" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">WarehouseId<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="warehouseId" col="WarehouseId" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">IsSupplier<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="isSupplier" col="IsSupplier" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">CustomerContacts<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerContacts" col="CustomerContacts" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">CustomerEmail<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerEmail" col="CustomerEmail" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">CustomerStatus<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerStatus" col="CustomerStatus" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">CustomerName<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerName" col="CustomerName" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">IsCustomer<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="isCustomer" col="IsCustomer" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">CustomerAddress<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerAddress" col="CustomerAddress" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">CustomerPhoneNo<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerPhoneNo" col="CustomerPhoneNo" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">CustomerRemark<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="customerRemark" col="CustomerRemark" type="text" class="form-control" />
+            </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    var id = ys.request("id");
+    $(function () {
+        getForm();
+
+        $('#form').validate({
+            rules: {
+                customerCode: { required: true }
+            }
+        });
+    });
+
+    function getForm() {
+        if (id > 0) {
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Customer/GetFormJson")' + '?id=' + id,
+                type: 'get',
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        $('#form').setWebControls(obj.Data);
+                    }
+                }
+            });
+        }
+        else {
+            var defaultData = {};
+            $('#form').setWebControls(defaultData);
+        }
+    }
+
+    function saveForm(index) {
+        if ($('#form').validate().form()) {
+            var postData = $('#form').getWebControls({ Id: id });
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Customer/SaveFormJson")',
+                type: 'post',
+                data: postData,
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        ys.msgSuccess(obj.Message);
+                        parent.searchGrid();
+                        parent.layer.close(index);
+                    }
+                    else {
+                        ys.msgError(obj.Message);
+                    }
+                }
+            });
+        }
+    }
+</script>
+

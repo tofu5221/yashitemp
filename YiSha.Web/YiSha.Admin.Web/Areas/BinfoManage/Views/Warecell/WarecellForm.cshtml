@@ -1,0 +1,119 @@
+﻿@{
+    Layout = "~/Views/Shared/_FormWhite.cshtml";
+}
+
+<div class="wrapper animated fadeInRight">
+    <form id="form" class="form-horizontal m">
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">分区名称<font class="red"> *</font></label>
+            <div class="col-sm-4" id="zoneId" col="ZoneId">
+            </div>
+            <label class="col-sm-2 control-label ">货位编码<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="warecellCode" col="WarecellCode" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">货位状态名称<font class="red"> *</font></label>
+            <div class="col-sm-4" id="warecellStatusKey" col="WarecellStatusKey">
+            </div>
+            <label class="col-sm-2 control-label ">状态</label>
+            <div class="col-sm-4" id="warecellStatus" col="WarecellStatus">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">货位类型名称<font class="red"> *</font></label>
+            <div class="col-sm-4" id="warecellSpecId" col="WarecellSpecId">
+            </div>
+            <label class="col-sm-2 control-label ">托盘编码</label>
+            <div class="col-sm-4">
+                <input id="palletCode" col="PalletCode" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">备注</label>
+            <div class="col-sm-4">
+                <input id="warecellRemark" col="WarecellRemark" type="text" class="form-control" />
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    var id = ys.request("id");
+    $(function () {
+        $("#warecellSpecId").ysComboBox({
+            url: '@Url.Content("~/BinfoManage/WarecellSpec/GetListJson")',
+            key: "Id",
+            value: "WarecellSpecName",
+            class: "form-control"
+        }
+        );
+        $("#zoneId").ysComboBox({
+            url: '@Url.Content("~/BinfoManage/Zone/GetListJson")',
+            key: "Id",
+            value: "ZoneName",
+            class: "form-control"
+        }
+        );
+        $("#warecellStatusKey").ysComboBox({
+            data: top.getDataDict("WarecellStatus"),
+            key: "DictKey",
+            value: "DictValue",
+            class: "form-control"
+        });
+        $("#warecellStatus").ysRadioBox({ data: ys.getJson(@Html.Raw(typeof(StatusEnum).EnumToDictionaryString())) });
+
+        getForm();
+
+        $('#form').validate({
+            rules: {
+                zoneId: { required: true },
+                warecellSpecId_select: { required: true },
+                zoneId_select: { required: true },
+                palletStatusKey_select: { required: true }
+            }
+        });
+    });
+
+    function getForm() {
+        if (id > 0) {
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Warecell/GetFormJson")' + '?id=' + id,
+                type: 'get',
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        $('#form').setWebControls(obj.Data);
+                    }
+                }
+            });
+        }
+        else {
+            var defaultData = {};
+            defaultData.WarecellStatus = "@StatusEnum.Yes.ParseToInt()";
+            $('#form').setWebControls(defaultData);
+        }
+    }
+
+    function saveForm(index) {
+        if ($('#form').validate().form()) {
+            var postData = $('#form').getWebControls({ Id: id });
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Warecell/SaveFormJson")',
+                type: 'post',
+                data: postData,
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        ys.msgSuccess(obj.Message);
+                        parent.searchGrid();
+                        parent.layer.close(index);
+                    }
+                    else {
+                        ys.msgError(obj.Message);
+                    }
+                }
+            });
+        }
+    }
+</script>
+

@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "~/Views/Shared/_FormWhite.cshtml";
+}
+
+<div class="wrapper animated fadeInRight">
+    <form id="form" class="form-horizontal m">
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">托盘编码<font class="red"> *</font></label>
+            <div class="col-sm-8">
+                <input id="palletCode" col="PalletCode" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">托盘型号名称<font class="red"> *</font></label>
+            <div class="col-sm-8">
+                <div id="palletSpecId" col="PalletSpecId"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">托盘状态名称<font class="red"> *</font></label>
+            <div class="col-sm-8">
+                <div id="palletStatusKey" col="PalletStatusKey"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">备注</label>
+            <div class="col-sm-8">
+                <input id="palletRemark" col="PalletRemark" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">状态</label>
+            <div class="col-sm-8" id="palletStatus" col="PalletStatus">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    var id = ys.request("id");
+    $(function () {
+        $("#palletSpecId").ysComboBox({
+            url: '@Url.Content("~/BinfoManage/PalletSpec/GetListJson")',
+            key: "Id",
+            value: "PalletSpecName",
+            class: "form-control"
+        }
+        );
+        $("#palletStatusKey").ysComboBox({
+            data: top.getDataDict("PalletStatus"),
+            key: "DictKey",
+            value: "DictValue",
+            class: "form-control"
+        });
+        $("#palletStatus").ysRadioBox({ data: ys.getJson(@Html.Raw(typeof(StatusEnum).EnumToDictionaryString())) });
+
+        getForm();
+
+        $('#form').validate({
+            rules: {
+                palletCode: { required: true },
+                palletSpecId_select: { required: true },
+                palletStatusKey_select: { required: true }
+            }
+        });
+    });
+
+    function getForm() {
+        if (id > 0) {
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Pallet/GetFormJson")' + '?id=' + id,
+                type: 'get',
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        $('#form').setWebControls(obj.Data);
+                    }
+                }
+            });
+        }
+        else {
+            var defaultData = {};
+            defaultData.PalletStatus = "@StatusEnum.Yes.ParseToInt()";
+            $('#form').setWebControls(defaultData);
+        }
+    }
+
+    function saveForm(index) {
+        if ($('#form').validate().form()) {
+            var postData = $('#form').getWebControls({ Id: id });
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/Pallet/SaveFormJson")',
+                type: 'post',
+                data: postData,
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        ys.msgSuccess(obj.Message);
+                        parent.searchGrid();
+                        parent.layer.close(index);
+                    }
+                    else {
+                        ys.msgError(obj.Message);
+                    }
+                }
+            });
+        }
+    }
+</script>
+

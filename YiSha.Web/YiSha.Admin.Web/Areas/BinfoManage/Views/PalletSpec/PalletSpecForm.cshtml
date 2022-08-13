@@ -1,0 +1,109 @@
+﻿@{
+    Layout = "~/Views/Shared/_FormWhite.cshtml";
+}
+
+<div class="wrapper animated fadeInRight">
+    <form id="form" class="form-horizontal m">
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">托盘类型代码<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="palletSpecCode" col="PalletSpecCode" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">托盘类型名称<font class="red"> *</font></label>
+            <div class="col-sm-4">
+                <input id="palletSpecName" col="PalletSpecName" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">长</label>
+            <div class="col-sm-4">
+                <input id="palletSpecLenght" col="PalletSpecLenght" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">宽</label>
+            <div class="col-sm-4">
+                <input id="palletSpecWidth" col="PalletSpecWidth" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">高</label>
+            <div class="col-sm-4">
+                <input id="palletSpecHeight" col="PalletSpecHeight" type="text" class="form-control" />
+            </div>
+            <label class="col-sm-2 control-label ">容量</label>
+            <div class="col-sm-4">
+                <input id="palletSpecVolume" col="PalletSpecVolume" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">备注</label>
+            <div class="col-sm-4">
+                <input id="palletSpecRemark" col="PalletSpecRemark" type="text" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label ">状态</label>
+            <div class="col-sm-4" id="palletSpecStatus" col="PalletSpecStatus">
+            </div>
+            <label class="col-sm-2 control-label ">状态</label>
+            <div class="col-sm-4" id="warecellStatus" col="WarecellStatus">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    var id = ys.request("id");
+    $(function () {
+        $("#palletSpecStatus").ysRadioBox({ data: ys.getJson(@Html.Raw(typeof(StatusEnum).EnumToDictionaryString())) });
+
+        getForm();
+
+        $('#form').validate({
+            rules: {
+                palletSpecCode: { required: true },
+                palletSpecName: { required: true }
+            }
+        });
+    });
+
+    function getForm() {
+        if (id > 0) {
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/PalletSpec/GetFormJson")' + '?id=' + id,
+                type: 'get',
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        $('#form').setWebControls(obj.Data);
+                    }
+                }
+            });
+        }
+        else {
+            var defaultData = {};
+            defaultData.PalletSpecStatus = "@StatusEnum.Yes.ParseToInt()";
+            $('#form').setWebControls(defaultData);
+        }
+    }
+
+    function saveForm(index) {
+        if ($('#form').validate().form()) {
+            var postData = $('#form').getWebControls({ Id: id });
+            ys.ajax({
+                url: '@Url.Content("~/BinfoManage/PalletSpec/SaveFormJson")',
+                type: 'post',
+                data: postData,
+                success: function (obj) {
+                    if (obj.Tag == 1) {
+                        ys.msgSuccess(obj.Message);
+                        parent.searchGrid();
+                        parent.layer.close(index);
+                    }
+                    else {
+                        ys.msgError(obj.Message);
+                    }
+                }
+            });
+        }
+    }
+</script>
+
